@@ -59,9 +59,9 @@
                     td.className = 'border border-gray-300 px-4 py-2';
 
                     if (rowIndex === 0) {
-                        td.textContent = cell;
+                        td.innerHTML = `${cell} <span class="sort-indicator"></span>`;
                         td.classList.add('cursor-pointer');
-                        td.addEventListener('click', () => sortColumn(colIndex));
+                        td.addEventListener('click', () => sortColumn(colIndex, td));
                     } else {
                         // Check if the cell contains a URL
                         if (/^https?:\/\//.test(cell.trim())) {
@@ -84,7 +84,7 @@
         }
 
         // Sort column function
-        function sortColumn(colIndex) {
+        function sortColumn(colIndex, headerCell) {
             const isDefault = !sortState[colIndex] || sortState[colIndex] === 'desc';
             const isAscending = sortState[colIndex] === 'default' || sortState[colIndex] === 'desc';
 
@@ -110,7 +110,28 @@
             tableContainer.innerHTML = '';
             tableContainer.appendChild(csvToTable(sortedRows.map(row => row.join(',')).join('\n')));
 
+            // Update sort state and indicator
             sortState[colIndex] = isDefault ? 'default' : isAscending ? 'asc' : 'desc';
+            updateSortIndicators(colIndex);
+        }
+
+        // Update sort indicators
+        function updateSortIndicators(activeColIndex) {
+            const headers = document.querySelectorAll('th');
+            headers.forEach((header, index) => {
+                const indicator = header.querySelector('.sort-indicator');
+                if (index === activeColIndex) {
+                    if (sortState[index] === 'asc') {
+                        indicator.textContent = '▲';
+                    } else if (sortState[index] === 'desc') {
+                        indicator.textContent = '▼';
+                    } else {
+                        indicator.textContent = '';
+                    }
+                } else {
+                    indicator.textContent = '';
+                }
+            });
         }
 
         // Fetch CSV and generate table
