@@ -25,6 +25,8 @@
         const csvUrlInput = document.getElementById('csv-url');
         const urlHistory = document.getElementById('url-history');
         const tableContainer = document.getElementById('table-container');
+        let originalRows = [];
+        let sortState = {}; // Keeps track of sort state for each column
 
         // Load input history from localStorage
         function loadHistory() {
@@ -44,36 +46,71 @@
 
         // Convert CSV text to an HTML table
         function csvToTable(csvText) {
-            const rows = csvText.split('\n').map(row => row.split(','));
+            originalRows = csvText.split('\n').map(row => row.split(','));
             const table = document.createElement('table');
             table.className = 'w-full border-collapse border border-gray-300';
 
-            rows.forEach((row, rowIndex) => {
+            originalRows.forEach((row, rowIndex) => {
                 const tr = document.createElement('tr');
                 tr.className = rowIndex === 0 ? 'bg-gray-200' : '';
 
-                row.forEach(cell => {
+                row.forEach((cell, colIndex) => {
                     const td = document.createElement(rowIndex === 0 ? 'th' : 'td');
                     td.className = 'border border-gray-300 px-4 py-2';
 
-                    // Check if the cell contains a URL
-                    if (/^https?:\/\//.test(cell.trim())) {
-                        const a = document.createElement('a');
-                        a.href = cell.trim();
-                        a.textContent = cell.trim();
-                        a.target = '_blank';
-                        a.className = 'text-blue-500 underline';
-                        td.appendChild(a);
-                    } else {
+                    if (rowIndex === 0) {
                         td.textContent = cell;
+                        td.classList.add('cursor-pointer');
+                        td.addEventListener('click', () => sortColumn(colIndex));
+                    } else {
+                        // Check if the cell contains a URL
+                        if (/^https?:\/\//.test(cell.trim())) {
+                            const a = document.createElement('a');
+                            a.href = cell.trim();
+                            a.textContent = cell.trim();
+                            a.target = '_blank';
+                            a.className = 'text-blue-500 underline';
+                            td.appendChild(a);
+                        } else {
+                            td.textContent = cell;
+                        }
                     }
                     tr.appendChild(td);
                 });
-
                 table.appendChild(tr);
             });
 
             return table;
+        }
+
+        // Sort column function
+        function sortColumn(colIndex) {
+            const isDefault = !sortState[colIndex] || sortState[colIndex] === 'desc';
+            const isAscending = sortState[colIndex] === 'default' || sortState[colIndex] === 'desc';
+
+            const rows = [...originalRows];
+            const header = rows.shift();
+
+            rows.sort((a, b) => {
+                const aValue = a[colIndex]?.trim() || '';
+                const bValue = b[colIndex]?.trim() || '';
+
+                if (isDefault) {
+                    return originalRows.indexOf(a) - originalRows.indexOf(b); // Original order
+                }
+
+                if (isAscending) {
+                    return aValue.localeCompare(bValue);
+                } else {
+                    return bValue.localeCompare(aValue);
+                }
+            });
+
+            const sortedRows = [header, ...rows];
+            tableContainer.innerHTML = '';
+            tableContainer.appendChild(csvToTable(sortedRows.map(row => row.join(',')).join('\n')));
+
+            sortState[colIndex] = isDefault ? 'default' : isAscending ? 'asc' : 'desc';
         }
 
         // Fetch CSV and generate table
