@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-4">
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
+    <div class="w-full bg-white p-6 rounded shadow">
         <h1 class="text-2xl font-bold mb-4">CSV to Table Converter</h1>
         <div class="mb-4">
             <label for="csv-url" class="block text-sm font-medium text-gray-700">CSV URL</label>
@@ -46,7 +46,7 @@
         function csvToTable(csvText) {
             const rows = csvText.split('\n').map(row => row.split(','));
             const table = document.createElement('table');
-            table.className = 'min-w-full border-collapse border border-gray-300';
+            table.className = 'w-full border-collapse border border-gray-300';
 
             rows.forEach((row, rowIndex) => {
                 const tr = document.createElement('tr');
